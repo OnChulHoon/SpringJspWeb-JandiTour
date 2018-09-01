@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.janditour.mapper.MemberMapper">
+
+	<insert id="insertMember" parameterType="Member">
+		INSERT INTO MEMBER (MEM_NO, MEM_ID, MEM_PW, MEM_NAME, MEM_EMAIL, MEM_PHONE,
+		MEM_DIV)
+		VALUES (MEMBER_SEQUENCE.NEXTVAL,#{memId}, #{memPw}, #{memName}, #{memEmail},
+		#{memPhone}, 2 )
+	</insert>
+
+	<select id="selectMember" parameterType="hashmap" resultType="Member">
+		SELECT MEM_NO memNo , MEM_ID memId, MEM_NAME memName, MEM_EMAIL
+		memEmail, MEM_PHONE memPhone, MEM_DIV memDiv, MEM_FILE memFile
+		FROM
+		MEMBER
+		WHERE MEM_ID = #{memId} AND MEM_PW = #{memPw}
+	</select>
+
+	<select id="selectProfile" parameterType="Member" resultType="Member">
+		SELECT MEM_NO memNo , MEM_ID memId, MEM_NAME memName, MEM_EMAIL
+		memEmail, MEM_PHONE memPhone, MEM_FILE memFile
+		FROM
+		MEMBER
+		WHERE MEM_NO = #{memNo}
+	</select>
+
+	<select id="updateImgUpload" parameterType="Member" resultType="Member">
+		UPDATE MEMBER
+		SET MEM_FILE = #{memFile}
+		WHERE MEM_NO = #{memNo}
+		<!-- <selectKey resultType="String" keyProperty="memFile" order="AFTER"> 
+			SELECT MEM_FILE memFile FROM MEMBER WHERE MEM_NO = #{memNo} </selectKey> -->
+	</select>
+
+	<select id="selectOldInfo" parameterType="Member" resultType="Member">
+		SELECT MEM_NO memNo , MEM_ID memId, MEM_NAME memName, MEM_EMAIL
+		memEmail, MEM_PHONE memPhone, MEM_FILE memFile
+		FROM
+		MEMBER
+		WHERE MEM_NO = #{memNo}
+	</select>
+
+	<select id="selectOldEmail" parameterType="String" resultType="Member">
+		SELECT MEM_NO memNo, MEM_EMAIL memEmail
+		FROM
+		MEMBER
+		WHERE MEM_NO = #{memNo}
+	</select>
+
+	<update id="updateEmail" parameterType="Member">
+		UPDATE MEMBER
+		SET MEM_EMAIL = #{memEmail}
+		WHERE MEM_NO = #{memNo}
+	</update>
+
+	<select id="selectOldId" parameterType="String" resultType="Member">
+		SELECT MEM_NO memNo, MEM_ID memId
+		FROM
+		MEMBER
+		WHERE MEM_NO = #{memNo}
+	</select>
+
+	<update id="updateId" parameterType="Member">
+		UPDATE MEMBER
+		SET MEM_ID = #{memId}
+		WHERE MEM_NO = #{memNo}
+	</update>
+
+	<select id="selectPw" parameterType="hashmap" resultType="Member">
+		SELECT MEM_NO memNo, MEM_PW memPw
+		FROM
+		MEMBER
+		WHERE MEM_NO = #{memNo}
+	</select>
+
+	<update id="updatePw" parameterType="Member">
+		UPDATE MEMBER
+		SET MEM_PW = #{memPw}
+		WHERE MEM_NO = #{memNo}
+	</update>
+	
+	<select id="selectMyId" parameterType="Member" resultType="Member">
+	SELECT MEM_ID memId
+	FROM
+	MEMBER
+	WHERE MEM_NAME = #{memName} AND MEM_EMAIL = #{memEmail} AND MEM_PHONE = #{memPhone}
+	</select>
+
+</mapper>  

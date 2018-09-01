@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.NoticeMapper">
+
+<insert id="insertWriteInfo"
+parameterType="Notice">
+INSERT INTO NOTICE (NOT_NO, NOT_TITLE, NOT_DATE, NOT_COUNT, NOT_CONTENT)
+VALUES (NOTICE_SEQUENCE.NEXTVAL, #{noticeTitle}, #{noticeDate}, #{noticeCount}, #{noticeContent})
+</insert>
+
+<select id="selectNotice"
+resultType="Notice">
+SELECT NOT_NO noticeNo , NOT_TITLE noticeTitle , NOT_DATE noticeDate, NOT_COUNT noticeCount, NOT_CONTENT noticeContent
+FROM NOTICE
+ORDER BY NOT_NO DESC
+</select>
+
+<delete id="deleteNotice"
+parameterType="int">
+DELETE
+FROM NOTICE
+WHERE NOT_NO = #{noticeNo}
+</delete>
+	
+</mapper>  

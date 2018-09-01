@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.BookMarkMapper">
+	
+	<insert id="insertBookMark"	parameterType="BookMark">
+		INSERT INTO BOOKMARK( BOK_NO , MEM_NO , BOK_DIV , BOK_NAME , BOK_ADDRESS, BOK_LISTCON)
+		SELECT BOOKMARK_SEQUENCE.NEXTVAL, #{memNo}, #{bookDiv, jdbcType=VARCHAR}, #{bookName, jdbcType=VARCHAR}, 
+		#{bookAddress, jdbcType=VARCHAR}, #{bookListCon, jdbcType=VARCHAR}
+		FROM DUAL
+		WHERE NOT EXISTS ( 
+			SELECT BOK_DIV bookDiv, MEM_NO memNo 
+			FROM BOOKMARK
+			WHERE BOK_DIV = #{bookDiv, jdbcType=VARCHAR} AND MEM_NO = #{memNo, jdbcType=VARCHAR})
+	</insert>
+
+	<select id="selectBookMarkFood" parameterType="BookMark" resultType="BookMark">
+		SELECT BOK_DIV bookDiv , BOK_NAME bookName, BOK_ADDRESS bookAddress, BOK_LISTCON bookListCon
+		FROM BOOKMARK
+		WHERE MEM_NO = #{memNo, jdbcType=VARCHAR} AND BOK_DIV LIKE '%-03-%'
+	</select>
+	
+	<select id="selectBookMarkTourist" parameterType="BookMark" resultType="BookMark">
+		SELECT BOK_DIV bookDiv , BOK_NAME bookName, BOK_ADDRESS bookAddress, BOK_LISTCON bookListCon
+		FROM BOOKMARK
+		WHERE MEM_NO = #{memNo, jdbcType=VARCHAR} AND BOK_DIV LIKE '%-01-%'
+	</select>
+
+	<select id="selectBookMarkStay" parameterType="BookMark" resultType="BookMark">
+		SELECT BOK_DIV bookDiv , BOK_NAME bookName, BOK_ADDRESS bookAddress, BOK_LISTCON bookListCon
+		FROM BOOKMARK
+		WHERE MEM_NO = #{memNo, jdbcType=VARCHAR} AND BOK_DIV LIKE '%-02-%'
+	</select>
+	
+	<select id="selectBookMark" parameterType="BookMark" resultType="BookMark">
+		SELECT BOK_DIV bookDiv , BOK_NAME bookName, BOK_ADDRESS bookAddress, BOK_LISTCON bookListCon
+		FROM BOOKMARK
+		WHERE MEM_NO = #{memNo, jdbcType=VARCHAR}
+	</select>
+	
+	<delete id="deleteBookMark" parameterType="BookMark">
+		DELETE 
+		FROM BOOKMARK
+		WHERE MEM_NO = #{memNo, jdbcType=VARCHAR} AND BOK_DIV = #{bookDiv, jdbcType=VARCHAR}
+	</delete>
+	
+	<select id="selectNoAll" resultType="BookMark">
+		SELECT FOOD.FOO_NO bookDiv3 FROM FOOD
+		UNION
+		SELECT STAY.STA_NO bookDiv3 FROM STAY
+		UNION
+		SELECT TOURIST.TOU_NO bookDiv3 FROM TOURIST
+	</select>
+				
+</mapper>  

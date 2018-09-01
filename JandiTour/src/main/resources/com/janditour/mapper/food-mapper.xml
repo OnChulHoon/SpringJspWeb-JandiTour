@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.FoodMapper">
+	
+	<insert id="insertFood"
+		parameterType="Food">
+		INSERT INTO FOOD (FOO_NO, FOO_NAME, FOO_ADDRESS, FOO_CONTENT, FOO_LISTCON, CIT_NO, FOO_RATING ,FOO_CHECK)
+		VALUES (#{citNo} || '-03-' || FOOD_SEQUENCE.NEXTVAL, #{foodName}, #{citName} || ' ' || #{foodAddress}, #{foodContent}, #{foodListContent}, #{citNo}, 0 ,FOOD_SEQUENCE.NEXTVAL)
+		<selectKey resultType="String" keyProperty="foodNo" order="AFTER" >
+			SELECT FOO_NO
+			FROM FOOD
+			WHERE FOO_CHECK = ((SELECT LAST_NUMBER FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'FOOD_SEQUENCE')-1)
+		</selectKey>
+	</insert>
+	
+	<insert id="insertFoodImageFile"
+		parameterType="ImageFile">
+		INSERT INTO IMAGE (IMG_NO, IMG_REF, IMG_PIC, IMG_IDX)
+		VALUES (IMAGE_SEQUENCE.NEXTVAL, #{imageRef}, #{savedImageFileName}, #{imageIdx})
+	</insert>
+	
+ 	<select id="selectFoodInfo"
+			resultType="Food" parameterType="hashmap">
+		SELECT 
+			B.*
+		FROM
+		(
+			SELECT
+				ROWNUM IDX, A.*
+			FROM
+			(	
+			
+				SELECT F.FOO_NO foodNo, F.FOO_NAME foodName,
+				F.FOO_ADDRESS foodAddress, F.CIT_NO citNo,
+				F.FOO_LISTCON foodListContent, F.FOO_CONTENT foodContent,
+				F.FOO_RATING foodRating, I.IMG_PIC savedImageFileName
+				FROM FOOD F
+		        JOIN IMAGE I
+		        ON F.FOO_NO = I.IMG_REF
+		        WHERE I.IMG_IDX = 1
+		        
+		     	<if test='area != null and area != "" and area2 != null and area2 != "" and foodName != null and foodName != ""'>
+					AND F.FOO_ADDRESS LIKE '%' || #{area} || '%' AND F.FOO_ADDRESS LIKE '%' || #{area2} || '%' AND F.FOO_NAME LIKE '%' || #{foodName} || '%'
+				</if>
+				<if test='area != null and area != "" and area != "전체"'>
+					AND F.FOO_ADDRESS LIKE '%' || #{area} || '%'
+				</if>
+				<if test='area2 != null and area2 != ""'>
+					AND F.FOO_ADDRESS LIKE '%' || #{area2} || '%'
+				</if>
+				<if test='foodName != null and foodName != ""'>
+					AND F.FOO_NAME LIKE '%' || #{foodName} || '%'
+				</if>	
+				ORDER BY F.FOO_CHECK DESC
+			) A
+		) B
+		WHERE B.IDX >= #{from} and B.IDX <![CDATA[ < ]]> #{to}		
+	</select>
+	
+	<select id="selectFoodInfoCount" resultType="int">
+		SELECT COUNT(*) FROM FOOD
+	</select>
+	
+	<select id="selectFoodInfos" resultType="Food" parameterType="hashmap">
+		SELECT F.FOO_NO foodNo, F.FOO_NAME foodName,
+				F.FOO_ADDRESS foodAddress, F.CIT_NO citNo,
+				F.FOO_LISTCON foodListContent, F.FOO_CONTENT foodContent,
+				F.FOO_RATING foodRating, I.IMG_PIC savedImageFileName
+			FROM FOOD F
+		    JOIN IMAGE I
+		    ON F.FOO_NO = I.IMG_REF
+		    WHERE I.IMG_IDX = 1
+		    ORDER BY F.FOO_RATING DESC
+	</select>
+	
+	<select id="selectTouristInfo" resultType="Tourist" parameterType="hashmap">
+		SELECT T.TOU_NO touNo, T.CIT_NO citNo, T.TOU_NAME touName, T.TOU_ADDRESS touAddress, T.TOU_CONTENT touContent, T.TOU_LISTCON touListCon, T.TOU_RATING touRating,
+				I.IMG_PIC savedImageFileName
+				FROM TOURIST T 
+				JOIN IMAGE I
+				ON T.TOU_NO = I.IMG_REF
+				WHERE I.IMG_IDX = 1
+				ORDER BY T.TOU_RATING DESC
+	</select>
+	
+	<select id="selectStayInfo" resultType="Stay" parameterType="hashmap">
+		SELECT S.STA_NO staNo,S.CIT_NO citNo,S.STA_NAME staName,S.STA_ADDRESS staAddress,S.STA_CONTENT staContent,S.STA_LISTCON staListCon, S.STA_RATING staRating,
+			I.IMG_PIC savedImageFileName 
+			FROM STAY S 
+			JOIN IMAGE I
+			ON S.STA_NO = I.IMG_REF
+			WHERE I.IMG_IDX = 1
+			ORDER BY S.STA_RATING DESC
+	</select>
+	
+	
+	<select id="selectTouristList" resultType="Tourist" parameterType="hashmap">
+		SELECT T.TOU_NO touNo, T.TOU_NAME touName, IMG_PIC savedImageFileName
+		FROM TOURIST T JOIN IMAGE I
+		ON T.TOU_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND TOU_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY TOU_RATING DESC
+	</select>
+	
+	<select id="selectStayList" resultType="Stay" parameterType="String">
+		SELECT S.STA_NO staNo, S.STA_NAME staName, IMG_PIC savedImageFileName
+		FROM STAY S JOIN IMAGE I
+		ON S.STA_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND STA_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY STA_RATING DESC
+	</select>
+	
+<!-- 	
+	<select id="selectFoodInfo"
+		resultMap="foodMap">
+		SELECT F.FOO_NO, F.FOO_NAME, F.FOO_LOCATION,
+		F.FOO_ADDRESS, F.CIT_NO,
+		F.FOO_LISTCON, I.IMG_PIC
+		FROM FOOD F
+        JOIN IMAGE I
+        ON F.FOO_NO = I.IMG_REF
+        WHERE I.IMG_IDX = 1		
+	</select>
+		
+  	<resultMap type="Food" id="foodMap">
+		<id column="FOO_NO" property="foodNo"/>
+		<id column="FOO_NAME" property="foodName"/>
+		<id column="FOO_LOCATION" property="foodLocation"/>
+		<id column="FOO_CONTENT" property="foodContent"/>
+		<id column="FOO_ADDRESS" property="foodAddress"/>
+		<id column="FOO_LISTCON" property="foodListContent"/>
+		<id column="CIT_NO" property="citNo"/>
+		<id column="IMG_PIC" property="savedImageFileName"/>
+	</resultMap>
+ -->	
+	
+	<select id="selectFoodInfoByFoodNo"
+			resultType="Food">
+			SELECT FOO_NO foodNo, FOO_NAME foodName, FOO_ADDRESS foodAddress, FOO_CONTENT foodContent,
+			FOO_LISTCON foodListContent, CIT_NO citNo, FOO_CHECK foodCheck, FOO_RATING 
+			FROM FOOD
+			WHERE FOO_NO = #{foodNo}
+	</select>
+	
+	<select id="selectFoodInfoImageByFoodNo2"
+			resultType="ImageFile">
+			SELECT IMG_PIC savedImageFileName
+			FROM IMAGE
+			WHERE IMG_REF = #{foodNo} AND IMG_IDX = 2	
+	</select>
+	
+	<select id="selectFoodInfoImageByFoodNo3"
+			resultType="ImageFile">
+			SELECT IMG_PIC savedImageFileName
+			FROM IMAGE
+			WHERE IMG_REF = #{foodNo} AND IMG_IDX >= 3	
+	</select>
+<!-- 	
+	<update id="updateFoodInfoWithImages"
+			parameterType="Food">
+			UPDATE FOOD
+			SET FOO_NO = #{foodNo}, FOO_NAME = #{foodName}, FOO_ADDRESS = #{foodAddress}, FOO_CONTENT = #{foodContent}, 
+				FOO_LISTCON = #{foodListContent}, CIT_NO = #{citNo}
+			WHERE FOO_CHECK = #{foodCheck}					
+	</update>
+-->
+	<update id="updateFoodInfoWithImages"
+			parameterType="Food">
+			UPDATE FOOD
+			SET FOO_NO = #{citNo} || '-03-' || #{foodCheck}, FOO_NAME = #{foodName},
+				FOO_ADDRESS = #{citName} || ' ' || #{foodAddress}, FOO_CONTENT = #{foodContent}, 
+				FOO_LISTCON = #{foodListContent}, CIT_NO = #{citNo}
+			WHERE FOO_CHECK = #{foodCheck}
+			<selectKey resultType="String" keyProperty="foodNo" order="AFTER" >
+				SELECT FOO_NO
+				FROM FOOD
+				WHERE FOO_CHECK = #{foodCheck}
+			</selectKey>				
+	</update>
+	
+	<delete id="deleteFoodInfoImages"
+			parameterType="ImageFile">
+			DELETE FROM IMAGE
+			WHERE IMG_REF = #{foodNo}
+	</delete>
+	
+	<delete id="deleteFoodInfoReviews"
+			parameterType="Review">
+			DELETE FROM REVIEW
+			WHERE PG_NO = #{foodNo}
+	</delete>
+	
+	<delete id="deleteFoodInfo"
+			parameterType="Food">
+			DELETE FROM FOOD
+			WHERE FOO_NO = #{foodNo}
+	</delete>
+	
+	
+	<insert id="insertFoodReview" parameterType="Review">
+		INSERT INTO REVIEW (RE_NO , MEM_ID, PG_NO, RE_CONTENT, RE_EVALUATION)
+		VALUES (REVIEW_SEQUENCE.NEXTVAL, #{memId}, #{pgNo}, #{reContent}, #{evaluation})
+	</insert>
+	
+	<select id="selectFoodReviewsByFoodNo" resultType="Review" parameterType="hashmap">
+	 	SELECT *
+			FROM 
+			(	SELECT rownum idx, a.*
+				FROM
+				(	 
+				SELECT RE_NO reNo, MEM_ID memId, PG_NO pgNo, RE_CONTENT reContent, RE_EVALUATION evaluation
+					FROM REVIEW
+					WHERE PG_NO = #{foodNo} 
+					ORDER BY RE_NO DESC
+			 	) a
+			) b
+			 WHERE idx >= #{ from } AND idx <![CDATA[<]]> #{ to }
+	</select>
+	
+	<select id="selectFoodReviewsAverage" resultType="Review" parameterType="String">
+		SELECT NVL(ROUND(AVG(RE_EVALUATION)), 0) average FROM REVIEW WHERE PG_NO = #{foodNo}
+	</select>
+	
+	<update id="updateAverageFoodReviewsByFoodNo" parameterType="hashmap">
+		UPDATE FOOD SET FOO_RATING = #{avg} WHERE FOO_NO = #{foodNo}
+	</update>
+	
+	<delete id="deleteFoodInfoReview">
+		DELETE FROM REVIEW WHERE PG_NO = #{foodNo}
+	</delete>
+	
+	<update id="updateFoodReview" parameterType="Review">
+		UPDATE REVIEW SET RE_CONTENT = #{reContent}, RE_EVALUATION = #{evaluation} WHERE RE_NO = #{reNo}
+	</update>
+	
+	<delete id="deleteFoodReview" parameterType="int">
+		DELETE FROM REVIEW WHERE RE_NO = #{reNo}
+	</delete>
+
+</mapper>  

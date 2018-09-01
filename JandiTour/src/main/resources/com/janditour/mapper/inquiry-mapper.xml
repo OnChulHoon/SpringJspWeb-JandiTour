@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.InquiryMapper">
+
+<insert id="writeInquiry"
+parameterType="Inquiry">
+INSERT INTO INQUIRY(INQ_NO, INQ_NAME, INQ_EMAIL, INQ_PHONE, INQ_CONTENT, INQ_TITLE)
+VALUES (INQUIRY_SEQUENCE.NEXTVAL, #{inqName}, #{inqEmail}, #{inqPhone}, #{inqContent}, #{inqTitle})
+</insert>
+
+<select id="inquirySelect"
+resultType="Inquiry">
+SELECT INQ_NO inqNo, INQ_NAME inqName, INQ_EMAIL inqEmail, INQ_PHONE inqPhone, INQ_CONTENT inqContent, INQ_TITLE inqTitle
+FROM INQUIRY
+</select>
+
+<delete id="deleteInquiry"
+parameterType="int">
+DELETE
+FROM INQUIRY
+WHERE INQ_NO = #{inqNo}
+</delete>
+
+</mapper>  

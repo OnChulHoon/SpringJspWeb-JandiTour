@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+ 
+ <configuration>
+
+	<!-- 외부에 설정된 프로퍼티 파일의 경로를 불러온다. -->
+	<properties resource="environment.properties"/>
+
+	<typeAliases>
+		<typeAlias type="com.janditour.vo.Food" alias="Food"/>
+		<typeAlias type="com.janditour.vo.Member" alias="Member"/>
+		<typeAlias type="com.janditour.vo.Tourist" alias="Tourist"/>
+		<typeAlias type="com.janditour.vo.ImageFile" alias="ImageFile"/>
+		<typeAlias type="com.janditour.vo.RentalCar" alias="RentalCar"/>
+		<typeAlias type="com.janditour.vo.TravelNote" alias="TravelNote"/>
+		<typeAlias type="com.janditour.vo.Stay" alias="Stay"/>
+		<typeAlias type="com.janditour.vo.Review" alias="Review"/>
+		<typeAlias type="com.janditour.vo.BookMark" alias="BookMark"/>
+		<typeAlias type="com.janditour.vo.Notice" alias="Notice"/>
+		<typeAlias type="com.janditour.vo.Inquiry" alias="Inquiry"/>
+	</typeAliases>
+
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="${datasource.driverClassName}" />
+				<property name="url" value="${datasource.url}" />
+				<property name="username" value="${datasource.username}" />
+				<property name="password" value="${datasource.password}" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>
+		<mapper resource="com/janditour/mapper/food-mapper.xml" />
+		<mapper resource="com/janditour/mapper/member-mapper.xml" />
+		<mapper resource="com/janditour/mapper/tourist-mapper.xml" />
+		<mapper resource="com/janditour/mapper/rentalcar-mapper.xml" />
+		<mapper resource="com/janditour/mapper/travelnote-mapper.xml" />
+		<mapper resource="com/janditour/mapper/stay-mapper.xml" />
+		<mapper resource="com/janditour/mapper/bookmark-mapper.xml" />
+		<mapper resource="com/janditour/mapper/notice-mapper.xml" />
+		<mapper resource="com/janditour/mapper/inquiry-mapper.xml" />
+		
+	</mappers>
+
+</configuration>

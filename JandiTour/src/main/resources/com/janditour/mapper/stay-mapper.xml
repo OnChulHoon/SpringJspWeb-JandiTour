@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.StayMapper">
+	
+	<insert id="insertStay" parameterType="Stay">
+	
+		<selectKey resultType="String" keyProperty="staNo" order="AFTER">
+			SELECT STA_NO
+			FROM STAY
+			WHERE STA_CHECK = ((SELECT LAST_NUMBER FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'STAY_SEQUENCE')-1)
+		</selectKey>
+		INSERT INTO STAY 
+		(STA_NO, CIT_NO, STA_NAME, STA_ADDRESS, STA_CONTENT,STA_LISTCON, STA_CHECK,STA_RATING) 
+		VALUES (#{citNo} || '-02-' || STAY_SEQUENCE.NEXTVAL, #{citNo}, #{staName}, #{citName} || ' ' || #{staAddress}, #{staContent},#{staListCon}, STAY_SEQUENCE.NEXTVAL,0)
+	
+	</insert>
+	
+	<insert id="insertStayImageFile"
+		parameterType="ImageFile">
+		INSERT INTO IMAGE (IMG_NO, IMG_REF, IMG_PIC, IMG_IDX)
+		VALUES (IMAGE_SEQUENCE.NEXTVAL, #{imageRef}, #{savedImageFileName}, #{imageIdx})
+	</insert>
+	
+<!-- 	<resultMap type ="Stay" id="stayMap">
+		<id column="sta_no" property="staNo"/>
+		<result column="cit_no" property="citNo"/>
+		<result column="sta_name" property="staName"/>
+		<result column="sta_content" property="staContent"/>
+		<result column="sta_address" property="staAddress"/>
+	</resultMap> -->
+	
+	<!-- <select id="selectStay" resultMap ="stayMap"> -->
+	<select id="selectStay" resultType ="Stay" parameterType="hashmap">
+	SELECT B.*
+	FROM 
+	(
+		SELECT ROWNUM IDX, A.*
+		FROM
+		(
+			SELECT S.STA_NO staNo,S.CIT_NO citNo,S.STA_NAME staName,S.STA_ADDRESS staAddress,S.STA_CONTENT staContent,S.STA_LISTCON staListCon,S.STA_RATING staRating,
+			I.IMG_PIC savedImageFileName 
+			FROM STAY S 
+			JOIN IMAGE I
+			ON S.STA_NO = I.IMG_REF
+			WHERE I.IMG_IDX =1
+			<if test='area != null and area != "" and area2 != null and area2 != "" and staName != null and staName != ""'>
+					AND S.STA_ADDRESS LIKE '%' || #{area} || '%' AND S.STA_ADDRESS LIKE '%' || #{area2} || '%' AND S.STA_NAME LIKE '%' || #{staName} || '%'
+			</if>
+			<if test='area != null and area != "" and area != "전체"'>
+					AND S.STA_ADDRESS LIKE '%' || #{area} || '%'
+			</if>
+			<if test='area2 != null and area2 != ""'>
+					AND S.STA_ADDRESS LIKE '%' || #{area2} || '%'
+			</if>
+			<if test='staName != null and staName != ""'>
+					AND S.STA_NAME LIKE '%' || #{staName} || '%'
+			</if>
+			ORDER BY S.STA_CHECK DESC
+			)A
+	)B
+	WHERE B.IDX >= #{from} and B.IDX <![CDATA[ < ]]> #{to}
+		
+	</select>
+	
+	<select id="selectStayByStayNo" resultType="Stay">
+		SELECT STA_NO staNo, CIT_NO citNo, STA_NAME staName,STA_ADDRESS staAddress,
+		 STA_CONTENT staContent,STA_LISTCON staListCon,STA_CHECK staCheck, STA_RATING staRating
+		FROM STAY 
+		WHERE STA_NO= #{staNo}
+		
+	</select>
+	
+	<select id="selectStayImageByStayNo" resultType="ImageFile">
+		SELECT IMG_PIC savedImageFileName
+		FROM IMAGE
+		WHERE IMG_REF = #{stayNo} AND IMG_IDX >= 3
+	</select>
+	
+	<select id="selectStayImgByStayNo" resultType="ImageFile">
+		SELECT IMG_PIC savedImageFileName
+		FROM IMAGE
+		WHERE IMG_REF = #{stayNo} AND IMG_IDX = 2
+	</select>
+	
+	<delete id="deleteStay" parameterType="Stay">
+		DELETE FROM STAY 
+		WHERE STA_NO = #{staNo}
+	</delete>
+	
+	<delete id="deleteStayReview" parameterType="String">
+		DELETE FROM REVIEW WHERE PG_NO = #{staNo}
+	</delete>
+	
+	<delete id="deleteStayImg" parameterType="ImageFile">
+		DELETE FROM IMAGE 
+		WHERE IMG_REF =#{staNo}
+	</delete>
+	
+	 <update id="updateStayWithImages"
+		parameterType="Stay">
+		UPDATE STAY
+		SET STA_NO = #{citNo} || '-02-' || #{staCheck}, STA_NAME = #{staName},
+			STA_ADDRESS = #{citName} || ' ' || #{staAddress}, STA_CONTENT = #{staContent}, 
+			STA_LISTCON = #{staListCon}, CIT_NO = #{citNo}
+		WHERE STA_CHECK = #{staCheck}
+		<selectKey resultType="String" keyProperty="staNo" order="AFTER" >
+			SELECT STA_NO
+			FROM STAY
+			WHERE STA_CHECK = #{staCheck}
+		</selectKey>				
+	</update> 
+
+	
+	<insert id="insertStayReview" parameterType="Review">
+		INSERT INTO REVIEW
+		(RE_NO, MEM_ID, PG_NO, RE_CONTENT, RE_EVALUATION)
+		VALUES (REVIEW_SEQUENCE.NEXTVAL, #{memId}, #{pgNo}, #{reContent}, #{evaluation})
+	</insert>
+	
+	<select id="selectReview" resultType="Review" parameterType="hashmap">	
+		SELECT *
+		FROM 
+		(
+			SELECT rownum idx, a.*
+			FROM
+			(
+				SELECT RE_NO reNo, MEM_ID memId, PG_NO pgNo, RE_CONTENT reContent, RE_EVALUATION evaluation
+				FROM REVIEW
+				WHERE PG_NO = #{staNo} 
+				ORDER BY RE_NO DESC
+			) a
+		) b
+		WHERE idx >= #{ from } AND idx <![CDATA[<]]> #{ to }
+	</select>
+	
+		<select id="selectStayCount" resultType="int">
+		SELECT COUNT(*) FROM STAY
+	</select>
+	
+	<select id="selectReviewAverage" resultType="Review" parameterType="String">
+		SELECT NVL(ROUND(AVG(RE_EVALUATION)), 0) average FROM REVIEW WHERE PG_NO = #{staNo}
+	</select>
+	
+	<update id="updateAvg" parameterType="hashmap">
+		UPDATE STAY SET STA_RATING = #{avg} WHERE STA_NO = #{staNo}
+	</update>
+	
+	<select id="selectFoodList" resultType="Food" parameterType="hashmap">
+		SELECT F.FOO_NO foodNo, F.FOO_NAME foodName, IMG_PIC savedImageFileName
+		FROM FOOD F JOIN IMAGE I
+		ON F.FOO_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND FOO_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY FOO_RATING DESC 
+	</select>
+	
+	<select id="selectTouList" resultType="Tourist" parameterType="String">
+		SELECT T.TOU_NO touNo, T.TOU_NAME touName, IMG_PIC savedImageFileName
+		FROM TOURIST T JOIN IMAGE I
+		ON T.TOU_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND TOU_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY TOU_RATING DESC 
+	</select>
+	
+	<update id="updateReview" parameterType="Review">
+		UPDATE REVIEW SET RE_CONTENT = #{reContent}, RE_EVALUATION = #{evaluation} WHERE RE_NO = #{reNo}
+	</update>
+	
+	<delete id="deleteReview" parameterType="int">
+		DELETE FROM REVIEW WHERE RE_NO = #{reNo}
+	</delete>
+	
+	
+</mapper>  

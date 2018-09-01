@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.TouristMapper">
+	
+	<insert id="insertTourist" parameterType="Tourist">
+		<selectKey resultType="String" keyProperty="touNo" order="AFTER">
+			SELECT TOU_NO
+			FROM TOURIST
+			WHERE TOU_CHECK = ((SELECT LAST_NUMBER FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'TOURIST_SEQUENCE')-1)
+		</selectKey>
+		INSERT INTO TOURIST 
+		(TOU_NO, CIT_NO, TOU_NAME, TOU_ADDRESS, TOU_CONTENT, TOU_LISTCON, TOU_CHECK, TOU_RATING) 
+		VALUES (#{citNo} || '-01-' || TOURIST_SEQUENCE.NEXTVAL, #{citNo}, #{touName}, #{citName} || ' ' || #{touAddress}, #{touContent}, #{touListCon}, TOURIST_SEQUENCE.NEXTVAL, 0)
+	</insert>
+	
+	<insert id="insertTouristImageFile"
+		parameterType="ImageFile">
+		INSERT INTO IMAGE (IMG_NO, IMG_REF, IMG_PIC, IMG_IDX)
+		VALUES (IMAGE_SEQUENCE.NEXTVAL, #{imageRef}, #{savedImageFileName}, #{imageIdx})
+	</insert>
+	
+	<select id="selectTourist" resultType="Tourist" parameterType="hashmap">
+		SELECT 
+			B.*
+		FROM
+		(
+			SELECT
+				ROWNUM IDX, A.*
+			FROM
+			(
+				SELECT T.TOU_NO touNo, T.CIT_NO citNo, T.TOU_NAME touName, T.TOU_ADDRESS touAddress, T.TOU_CONTENT touContent, T.TOU_LISTCON touListCon, T.TOU_RATING touRating,
+				I.IMG_PIC savedImageFileName
+				FROM TOURIST T 
+				JOIN IMAGE I
+				ON T.TOU_NO = I.IMG_REF
+				WHERE I.IMG_IDX = 1
+				<if test='area != null and area != "" and area2 != null and area2 != "" and touName != null and touName != ""'>
+					AND T.TOU_ADDRESS LIKE '%' || #{area} || '%' AND T.TOU_ADDRESS LIKE '%' || #{area2} || '%' AND T.TOU_NAME LIKE '%' || #{touName} || '%'
+				</if>
+				<if test='area != null and area != "" and area != "전체"'>
+					AND T.TOU_ADDRESS LIKE '%' || #{area} || '%'
+				</if>
+				<if test='area2 != null and area2 != ""'>
+					AND T.TOU_ADDRESS LIKE '%' || #{area2} || '%'
+				</if>
+				<if test='touName != null and touName != ""'>
+					AND T.TOU_NAME LIKE '%' || #{touName} || '%'
+				</if>	
+				ORDER BY T.TOU_CHECK DESC
+			) A
+		) B
+		WHERE B.IDX >= #{from} and B.IDX <![CDATA[ < ]]> #{to}
+	</select>
+	
+	<select id="selectTouristByTouristNo"  resultType="Tourist">
+		SELECT TOU_NO touNo, CIT_NO citNo, TOU_NAME touName, TOU_ADDRESS touAddress, TOU_CONTENT touContent, TOU_RATING touRating, TOU_LISTCON touListCon, TOU_CHECK touCheck
+		FROM TOURIST
+		WHERE TOU_NO = #{touristNo}
+	</select>
+	
+	<select id="selectTouristImageByTouristNo" resultType="ImageFile">
+		SELECT IMG_PIC savedImageFileName
+		FROM IMAGE
+		WHERE IMG_REF = #{touristNo} AND IMG_IDX >= 3
+	</select>
+	
+	<select id="selectTouristImgByTouristNo" resultType="ImageFile">
+		SELECT IMG_PIC savedImageFileName
+		FROM IMAGE
+		WHERE IMG_REF = #{touristNo} AND IMG_IDX = 2
+	</select>
+	
+	<insert id="insertReview" parameterType="Review">
+		INSERT INTO REVIEW
+		(RE_NO, MEM_ID, PG_NO, RE_CONTENT, RE_EVALUATION)
+		VALUES (REVIEW_SEQUENCE.NEXTVAL, #{memId}, #{pgNo}, #{reContent}, #{evaluation})
+	</insert>
+	
+	<select id="selectReview" resultType="Review" parameterType="hashmap">
+		SELECT *
+		FROM 
+		(
+			SELECT rownum idx, a.*
+			FROM
+			(
+				SELECT RE_NO reNo, MEM_ID memId, PG_NO pgNo, RE_CONTENT reContent, RE_EVALUATION evaluation
+				FROM REVIEW
+				WHERE PG_NO = #{touristNo} 
+				ORDER BY RE_NO DESC
+			) a
+		) b
+		WHERE idx >= #{ from } AND idx <![CDATA[<]]> #{ to }
+	</select>
+	
+	<select id="selectReviewAverage" resultType="Review" parameterType="String">
+		SELECT NVL(ROUND(AVG(RE_EVALUATION)), 0) average FROM REVIEW WHERE PG_NO = #{touristNo}
+	</select>
+	
+	<update id="updateAvg" parameterType="hashmap">
+		UPDATE TOURIST SET TOU_RATING = #{avg} WHERE TOU_NO = #{touristNo}
+	</update>
+	
+	<select id="selectTouristCount" resultType="int">
+		SELECT COUNT(*) FROM TOURIST
+	</select>
+	
+	<update id="updateReview" parameterType="Review">
+		UPDATE REVIEW SET RE_CONTENT = #{reContent}, RE_EVALUATION = #{evaluation} WHERE RE_NO = #{reNo}
+	</update>
+	
+	<delete id="deleteReview" parameterType="int">
+		DELETE FROM REVIEW WHERE RE_NO = #{reNo}
+	</delete>
+	
+	<delete id="deleteTourist" parameterType="String">
+		DELETE FROM TOURIST WHERE TOU_NO = #{touristNo}
+	</delete>
+	
+	<delete id="deleteTourist2" parameterType="String">
+		DELETE FROM REVIEW WHERE PG_NO = #{touristNo}
+	</delete>
+	
+	<delete id="deleteTourist3" parameterType="String">
+		DELETE FROM IMAGE WHERE IMG_REF = #{touristNo}
+	</delete>
+	
+	<delete id="updateDeleteImage" parameterType="String">
+		DELETE FROM IMAGE WHERE IMG_REF = #{touristNo}
+	</delete>
+	
+	<update id="updateTourist" parameterType="Tourist">
+		UPDATE TOURIST SET TOU_NO = #{citNo} || '-01-' || #{touCheck}, TOU_NAME = #{touName}, TOU_ADDRESS = #{citName} || ' ' || #{touAddress}, TOU_CONTENT = #{touContent}, TOU_LISTCON = #{touListCon}, CIT_NO = #{citNo}
+		WHERE TOU_CHECK = #{touCheck}
+		<selectKey resultType="String" keyProperty="touNo" order="AFTER">
+			SELECT TOU_NO FROM TOURIST WHERE TOU_CHECK = #{touCheck}
+		</selectKey>
+	</update>
+	
+	<select id="selectFoodList" resultType="Food" parameterType="hashmap">
+		SELECT F.FOO_NO foodNo, F.FOO_NAME foodName, IMG_PIC savedImageFileName
+		FROM FOOD F JOIN IMAGE I
+		ON F.FOO_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND FOO_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY FOO_RATING DESC 
+	</select>
+	
+	<select id="selectStayList" resultType="Stay" parameterType="String">
+		SELECT S.STA_NO staNo, S.STA_NAME staName, IMG_PIC savedImageFileName
+		FROM STAY S JOIN IMAGE I
+		ON S.STA_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1 AND STA_ADDRESS LIKE '%' || #{citName} || '%' AND rownum <![CDATA[<]]> 6
+		ORDER BY STA_RATING DESC 
+	</select>
+	
+	<select id="selectIsland" resultType="Tourist" parameterType="String">
+		SELECT T.TOU_NO touNo, T.CIT_NO citNo, T.TOU_NAME touName, T.TOU_ADDRESS touAddress, T.TOU_CONTENT touContent, T.TOU_LISTCON touListCon, T.TOU_RATING touRating,
+		I.IMG_PIC savedImageFileName
+		FROM TOURIST T 
+		JOIN IMAGE I
+		ON T.TOU_NO = I.IMG_REF
+		WHERE I.IMG_IDX = 1
+		<if test='pos == "east"'>
+			AND T.TOU_CONTENT LIKE '%(동해)%'
+		</if>
+		<if test='pos == "west"'>
+			AND T.TOU_CONTENT LIKE '%(서해)%'
+		</if>
+		<if test='pos == "south"'>
+			AND T.TOU_CONTENT LIKE '%(남해)%'
+		</if>
+	</select>
+	
+</mapper>  

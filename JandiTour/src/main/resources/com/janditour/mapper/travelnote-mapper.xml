@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.janditour.mapper.TravelNoteMapper">
+	
+	<select id="selectTravelNoteList" resultType="TravelNote">
+		SELECT 
+			TRN_NO trnNo, TRN_TITLE trnTitle, TR.MEM_NO memNo, TRN_PIC trnPic,
+			TRN_AREA trnArea, TRN_ST trnSt, TRN_END trnEnd, M.MEM_ID memId
+		FROM TRAVEL_NOTE TR
+		INNER JOIN MEMBER M
+		ON TR.MEM_NO = M.MEM_NO
+		ORDER BY TRN_NO DESC
+	</select>
+	
+    <insert id="insertTravelNote" parameterType="TravelNote">
+		INSERT INTO TRAVEL_NOTE 
+		(
+			TRN_NO, TRN_ST, TRN_END, TRN_CONTENT, 
+			TRN_PIC, TRN_TITLE, MEM_NO, TRN_AREA
+		)
+		VALUES 
+		(
+			TRAVEL_NOTE_SEQUENCE.NEXTVAL, #{trnSt}, #{trnEnd}, #{trnContent},
+			#{trnPic}, #{trnTitle},#{memNo},#{trnArea}
+		)
+	</insert>	
+	
+	<select id="selectTravelNoteListWithPaging" resultType="TravelNote" parameterType="hashmap">
+		SELECT * 
+		FROM 
+		(
+			SELECT rownum idx, a.*
+			FROM
+			(
+				SELECT 
+					TR.TRN_NO trnNo, TR.TRN_TITLE trnTitle, TR.MEM_NO memNo, TR.TRN_PIC trnPic,
+					TR.TRN_AREA trnArea, TR.TRN_ST trnSt, TR.TRN_END trnEnd, M.MEM_ID memId
+				FROM TRAVEL_NOTE TR
+		        INNER JOIN MEMBER M
+		        ON TR.MEM_NO = M.MEM_NO
+				ORDER BY TR.TRN_NO DESC
+			) a
+		) b
+		WHERE b.idx >= #{ from } AND b.idx <![CDATA[<]]> #{ to } 
+	</select>
+	
+	<select id="selectTravelNoteCount" resultType="int">
+		SELECT COUNT(*)
+		FROM TRAVEL_NOTE
+	</select>
+	
+	<select id="selectTravelNoteInfoByTrnNo" resultType="TravelNote" parameterType="int">
+		SELECT 
+			TR.TRN_NO trnNo, TR.TRN_TITLE trnTitle, TR.MEM_NO memNo, 
+			TR.TRN_AREA trnArea, TR.TRN_ST trnSt, TR.TRN_END trnEnd, TR.TRN_CONTENT trnContent, 
+			TR.TRN_PIC trnPic, M.MEM_ID memId
+		FROM TRAVEL_NOTE TR
+		INNER JOIN MEMBER M
+		ON TR.MEM_NO = M.MEM_NO
+		WHERE TR.TRN_NO = #{ trnNo }	
+	</select>
+	
+ 	<update id="updateTravelNoteInfo" parameterType="TravelNote">
+		UPDATE TRAVEL_NOTE
+		SET 
+			TRN_TITLE = #{ trnTitle },
+			TRN_ST = #{ trnSt },
+			TRN_END = #{ trnEnd },
+			TRN_CONTENT = #{ trnContent },
+			TRN_PIC = #{trnPic}
+		WHERE 
+			TRN_NO = #{ trnNo } 
+	</update>
+	
+
+	<delete id="deleteTravelNoteInfo" parameterType="TravelNote">
+	    DELETE FROM TRAVEL_NOTE
+		WHERE TRN_NO = #{ trnNo }
+	</delete>
+	
+</mapper>  

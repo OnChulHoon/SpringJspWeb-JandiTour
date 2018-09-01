@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.janditour.mapper.RentalCarMapper">
+
+	<insert id="insertRentalCar" parameterType="RentalCar">
+		INSERT INTO RENT_CAR
+		(REN_NO, MEM_NO, REN_CON, REN_SUB, REN_PIC, REN_CARNAME)
+		VALUES
+		(RENT_CAR_SEQUENCE.NEXTVAL, #{memNo}, #{renCon}, #{renSub}, #{renPic},
+		#{renCarName})
+	</insert>
+
+	<select id="selectRentalCar" resultType="RentalCar">
+		SELECT 
+			REN_NO renNo, RC.MEM_NO memNo, M.MEM_ID memId, 
+			REN_SUB renSub, REN_PIC renPic, REN_CARNAME renCarName
+		FROM RENT_CAR RC
+		INNER JOIN MEMBER M
+		ON RC.MEM_NO = M.MEM_NO
+		ORDER BY REN_NO DESC
+	</select>
+
+	<select id="selectRentalCarByNo" resultType="RentalCar"
+		parameterType="int">
+		SELECT
+		RC.REN_NO renNo, RC.MEM_NO memNo, RC.REN_SUB renSub, RC.REN_PIC renPic,
+		RC.REN_CARNAME renCarName, RC.REN_CON renCon, M.MEM_ID memId
+		FROM RENT_CAR RC
+		INNER JOIN MEMBER M
+		ON RC.MEM_NO = M.MEM_NO
+		WHERE RC.REN_NO = #{renNo}
+	</select>
+
+	<select id="selectBoardCount" resultType="int">
+		SELECT COUNT(*)
+		FROM RENT_CAR
+	</select>
+	
+	<select id="selectBoardWithPaging" resultType="RentalCar" parameterType="hashmap">
+		SELECT b.*
+		FROM
+		(
+			SELECT rownum idx, a.*
+			FROM
+			(
+				SELECT
+					RC.REN_NO renNo, RC.MEM_NO memNo, RC.REN_SUB renSub, RC.REN_PIC renPic,
+					RC.REN_CARNAME renCarName, M.MEM_ID memId
+				FROM RENT_CAR RC
+				INNER JOIN MEMBER M
+				ON RC.MEM_NO = M.MEM_NO 
+				ORDER BY RC.REN_NO DESC
+			) a
+		) b
+		WHERE
+			b.idx >= #{from} AND b.idx <![CDATA[<]]> #{to}
+	</select>
+</mapper>  

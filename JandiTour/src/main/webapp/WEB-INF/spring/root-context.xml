@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- DB 연결 MyBatis 기반 -->	
+	<!-- 외부의 DB 연결 설정 파일을 읽어서 사용할 수 있도록 한다. -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:environment.properties"></property>
+	</bean>
+		
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp2.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driverClassName}"/>
+		<property name="url" value="${datasource.url}"/>
+		<property name="username" value="${datasource.username}"/>
+		<property name="password" value="${datasource.password}"/>
+	</bean>
+	
+	<!-- MyBatis -> Spring 연결 -->
+	<bean id="sqlSessionFactory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>	
+	</bean>
+	
+	<bean id="sqlSessionTemplate"
+		class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory"/>
+	</bean>
+	
+	
+<!-- /////.....각 기능별 의존성 주입.....////////////////////////////////////////////////////////////////////////////////////////////////////// -->	
+	
+<!-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+	<!-- 로그인 기능 - 권서현 -->
+	
+	<import resource="classpath:com/janditour/config/member-config.xml" />
+	<import resource="classpath:com/janditour/config/notice-config.xml" />
+	<import resource="classpath:com/janditour/config/inquiry-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->	
+
+	<!-- 맛집 정보 - 온철훈 -->
+						
+	<import resource="classpath:com/janditour/config/food-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->	
+
+	<!-- 관광지 정보 - 방영민 -->	
+	
+	<import resource="classpath:com/janditour/config/tourist-config.xml" />
+
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->	
+
+
+	<!-- 숙박 정보 - 이아영 -->
+	<import resource="classpath:com/janditour/config/stay-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+	<!-- 여행 가이드 - 이세영 -->
+	<import resource="classpath:com/janditour/config/bookmark-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+	<!-- 렌트카 후기 게시판 - 정진영 -->
+	
+	<import resource="classpath:com/janditour/config/rentalcar-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+	<!-- 여행 후기 게시판 - 김윤오 -->
+	
+	<import resource="classpath:com/janditour/config/travelnote-config.xml" />
+	
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->			
+	
+	
+	
+</beans>
